@@ -1,8 +1,8 @@
 package com.kaspersky.kaspressample.simple_tests
 
 import android.Manifest
+import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.rule.ActivityTestRule
 import androidx.test.rule.GrantPermissionRule
 import com.kaspersky.kaspressample.MainActivity
 import com.kaspersky.kaspressample.R
@@ -15,6 +15,7 @@ import com.kaspersky.kaspresso.files.resources.ResourcesRootDirsProvider
 import com.kaspersky.kaspresso.files.resources.impl.DefaultResourceFilesProvider
 import com.kaspersky.kaspresso.files.resources.impl.DefaultResourcesDirNameProvider
 import com.kaspersky.kaspresso.files.resources.impl.DefaultResourcesDirsProvider
+import com.kaspersky.kaspresso.instrumental.InstrumentalDependencyProviderFactory
 import com.kaspersky.kaspresso.interceptors.watcher.testcase.TestRunWatcherInterceptor
 import com.kaspersky.kaspresso.interceptors.watcher.testcase.impl.logging.DumpLogcatInterceptor
 import com.kaspersky.kaspresso.interceptors.watcher.testcase.impl.screenshot.TestRunnerScreenshotWatcherInterceptor
@@ -35,12 +36,16 @@ class CustomizedSimpleTest : TestCase(
             videoParams = VideoParams(bitRate = 10_000_000)
             screenshotParams = ScreenshotParams(quality = 1)
 
-            dirsProvider = DefaultDirsProvider(InstrumentationRegistry.getInstrumentation())
+            dirsProvider = DefaultDirsProvider(
+                InstrumentalDependencyProviderFactory().getComponentProvider<Kaspresso>(InstrumentationRegistry.getInstrumentation())
+            )
             resourcesDirNameProvider = DefaultResourcesDirNameProvider()
 
             resourcesRootDirsProvider = object : ResourcesRootDirsProvider {
                 override val logcatRootDir = File("custom_logcat")
                 override val screenshotsRootDir = File("custom_screenshots")
+                override val originalScreenshotsRootDir = File("custom_original_screenshots")
+                override val screenshotsDiffRootDir = File("custom_screenshot_diffs")
                 override val videoRootDir = File("custom_video")
                 override val viewHierarchy = File("custom_view_hierarchy")
             }
@@ -49,7 +54,7 @@ class CustomizedSimpleTest : TestCase(
                 dirsProvider = dirsProvider,
                 resourcesDirNameProvider = resourcesDirNameProvider
             ) {
-                override fun provide(dest: File, subDir: String?): File =
+                override fun provide(dest: File, subDir: String?, provideCleared: Boolean): File =
                     dirsProvider.provideCleared(dirsProvider.provideNew(dest))
             }
 
@@ -91,50 +96,48 @@ class CustomizedSimpleTest : TestCase(
     )
 
     @get:Rule
-    val activityTestRule = ActivityTestRule(MainActivity::class.java, true, false)
+    val activityRule = activityScenarioRule<MainActivity>()
 
     @Test
-    fun test() =
-        run {
-            step("Open Simple Screen") {
-                activityTestRule.launchActivity(null)
-                testLogger.i("I am testLogger")
-                device.screenshots.take("Additional_screenshot")
-                MainScreen {
-                    simpleButton {
-                        isVisible()
-                        click()
-                    }
+    fun test() = run {
+        step("Open Simple Screen") {
+            testLogger.i("I am testLogger")
+            device.screenshots.take("Additional_screenshot")
+            MainScreen {
+                simpleButton {
+                    isVisible()
+                    click()
                 }
-            }
-
-            step("Click button_1 and check button_2") {
-                SimpleScreen {
-                    button1 {
-                        click()
-                    }
-                    button2 {
-                        isVisible()
-                    }
-                }
-            }
-
-            step("Click button_2 and check edit") {
-                SimpleScreen {
-                    button2 {
-                        click()
-                    }
-                    edit {
-                        flakySafely(timeoutMs = 7000) { isVisible() }
-                        hasText(R.string.simple_fragment_text_edittext)
-                    }
-                }
-            }
-
-            step("Check all possibilities of edit") {
-                scenario(
-                    CheckEditScenario()
-                )
             }
         }
+
+        step("Click button_1 and check button_2") {
+            SimpleScreen {
+                button1 {
+                    click()
+                }
+                button2 {
+                    isVisible()
+                }
+            }
+        }
+
+        step("Click button_2 and check edit") {
+            SimpleScreen {
+                button2 {
+                    click()
+                }
+                edit {
+                    flakySafely(timeoutMs = 7000) { isVisible() }
+                    hasText(R.string.simple_fragment_text_edittext)
+                }
+            }
+        }
+
+        step("Check all possibilities of edit") {
+            scenario(
+                CheckEditScenario()
+            )
+        }
+    }
 }

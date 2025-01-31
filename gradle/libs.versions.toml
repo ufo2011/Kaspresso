@@ -1,65 +1,84 @@
 [versions]
-kotlin = "1.5.31"
-detekt = "1.18.1"
-espresso = "3.4.0"
+kotlin = "1.8.22"
+detekt = "1.21.0"
+espresso = "3.6.1"
+kakao = "3.6.2"
+kakaoCompose = "0.2.3"
+kakaoExtClicks = "1.0.0"
 allure = "2.4.0"
-compose = "1.0.5"
+compose = "1.5.4"
+composeCompiler = "1.4.8"
 activityCompose = "1.4.0"
-androidXTest = "1.4.0"
-lifecycle = "2.4.0"
+androidXTest = "1.6.1"
+testOrchestrator = "1.4.2"
+lifecycle = "2.6.2"
+thirdPartyReport = "0.19.1296"
+agp = "7.2.2"
+org-jetbrains-kotlin-android = "1.9.0"
+core-ktx = "1.9.0"
+junit = "4.13.2"
+androidx-test-ext-junit = "1.1.5"
+appcompat = "1.6.1"
+material = "1.8.0"
 
 [libraries]
 # plugins
 kotlinPlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-androidPlugin = "com.android.tools.build:gradle:7.0.3"
-versionsPlugin = "com.github.ben-manes:gradle-versions-plugin:0.39.0"
+androidPlugin = "com.android.tools.build:gradle:8.4.2"
+versionsPlugin = "com.github.ben-manes:gradle-versions-plugin:0.50.0"
+thirdPartyReportPlugin = { module = "com.kaspersky.gradle:third-party-report", version.ref = "thirdPartyReport" }
+airPlugin = { module = "com.kaspersky.gradle:air", version.ref = "thirdPartyReport" }
 
 # libraries
 kotlinStdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
-kotlinCli = "org.jetbrains.kotlinx:kotlinx-cli:0.3.3"
+kotlinCli = "org.jetbrains.kotlinx:kotlinx-cli:0.3.5"
 
 detektCli = { module = "io.gitlab.arturbosch.detekt:detekt-cli", version.ref = "detekt" }
 detektFormatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 
-androidXCore = "androidx.core:core:1.7.0"
-appcompat = "androidx.appcompat:appcompat:1.4.0"
-material = "com.google.android.material:material:1.4.0"
-constraint = "androidx.constraintlayout:constraintlayout:2.1.2"
+androidXCore = "androidx.core:core:1.12.0"
+appcompat = "androidx.appcompat:appcompat:1.6.1"
+material = "com.google.android.material:material:1.11.0"
+constraint = "androidx.constraintlayout:constraintlayout:2.1.4"
 multidex = "androidx.multidex:multidex:2.0.1"
 
 lifecycleViewModelKtx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 lifecycleLiveDataKtx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycle" }
 lifecycleViewModelComposeKtx = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 
-okhttp = "com.squareup.okhttp3:okhttp:4.9.1"
-gson = "com.google.code.gson:gson:2.8.9"
+okhttp = "com.squareup.okhttp3:okhttp:4.10.0"
+gson = "com.google.code.gson:gson:2.9.1"
 kotson = "com.github.salomonbrys.kotson:kotson:2.5.0"
 
 espressoCore = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 espressoWeb = { module = "androidx.test.espresso:espresso-web", version.ref = "espresso" }
-uiAutomator = "androidx.test.uiautomator:uiautomator:2.2.0"
-robolectric = "org.robolectric:robolectric:4.8.1"
-kakao = "io.github.kakaocup:kakao:3.0.6"
-kakaoCompose = "io.github.kakaocup:compose:0.0.6"
+uiAutomator = "androidx.test.uiautomator:uiautomator:2.3.0"
+robolectric = "org.robolectric:robolectric:4.8.2"
+kakao = { module = "io.github.kakaocup:kakao", version.ref = "kakao" }
+kakaoCompose = { module = "io.github.kakaocup:compose", version.ref = "kakaoCompose" }
+kakaoExtClicks = { module = "io.github.kakaocup:kakao-ext-clicks", version.ref = "kakaoExtClicks" }
 junit = "junit:junit:4.13.2"
-junitJupiter = "org.junit.jupiter:junit-jupiter:5.8.1"
-truth = "com.google.truth:truth:1.0"
+junitJupiter = "org.junit.jupiter:junit-jupiter:5.9.0"
+assertj = "org.assertj:assertj-core:3.11.1"
+truth = "com.google.truth:truth:1.3.0"
+mockk = "io.mockk:mockk:1.13.12"
 
 androidXTestCore = { module = "androidx.test:core", version.ref = "androidXTest" }
 androidXTestRules = { module = "androidx.test:rules", version.ref = "androidXTest" }
-androidXTestFragmentTesting = { module = "androidx.fragment:fragment-testing", version.ref = "androidXTest" }
 androidXTestRunner = { module = "androidx.test:runner", version.ref = "androidXTest" }
-androidXTestOrchestrator = { module = "androidx.test:orchestrator", version.ref = "androidXTest" }
-androidXTestExtJunit = "androidx.test.ext:junit:1.1.3"
-androidXTestExtJunitKtx = "androidx.test.ext:junit-ktx:1.1.3"
+androidXTestFragmentTesting = "androidx.fragment:fragment-testing:1.6.2"
+androidXTestOrchestrator = { module = "androidx.test:orchestrator", version.ref = "testOrchestrator" }
+androidXTestExtJunit = "androidx.test.ext:junit:1.1.5"
+androidXTestExtJunitKtx = "androidx.test.ext:junit-ktx:1.1.5"
+androidXLifecycleRuntimeKtx = "androidx.lifecycle:lifecycle-runtime-ktx:2.6.2"
 
-composeActivity = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+composeCompiler = { module = "androidx.compose.compiler:compiler", version.ref = "composeCompiler" }
+composeActivity = "androidx.activity:activity-compose:1.5.1"
 composeUiTooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 composeMaterial = { module = "androidx.compose.material:material", version.ref = "compose" }
 composeTestManifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "compose" }
-composeCompiler = { module = "androidx.compose.compiler:compiler", version.ref = "compose" }
 composeRuntimeLiveData = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "compose" }
-composeNavigation = "androidx.navigation:navigation-compose:2.4.0-beta02"
+composeNavigation = "androidx.navigation:navigation-compose:2.5.2"
 
 composeUiTest = { module = "androidx.compose.ui:ui-test", version.ref = "compose" }
 composeUiTestJunit = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "compose" }
@@ -68,8 +87,15 @@ allureKotlinModel = { module = "io.qameta.allure:allure-kotlin-model", version.r
 allureKotlinCommons = { module = "io.qameta.allure:allure-kotlin-commons", version.ref = "allure" }
 allureKotlinJunit4 = { module = "io.qameta.allure:allure-kotlin-junit4", version.ref = "allure" }
 allureKotlinAndroid = { module = "io.qameta.allure:allure-kotlin-android", version.ref = "allure" }
-
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
+junit-junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
+androidx-appcompat-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+com-google-android-material-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 [bundles]
 espresso = ["espressoCore", "espressoWeb"]
 allure = ["allureKotlinModel", "allureKotlinCommons", "allureKotlinJunit4", "allureKotlinAndroid"]
 compose = ["composeActivity", "composeUiTooling", "composeMaterial", "composeTestManifest", "composeCompiler"]
+[plugins]
+com-android-library = { id = "com.android.library", version.ref = "agp" }
+org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "org-jetbrains-kotlin-android" }

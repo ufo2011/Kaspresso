@@ -3,9 +3,10 @@ plugins {
 }
 
 android {
+    namespace = "com.kaspersky.kaspressample"
     defaultConfig {
         applicationId = "com.kaspersky.kaspressample"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.kaspersky.kaspresso.runner.KaspressoRunner"
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
     }
 
@@ -37,16 +38,26 @@ dependencies {
     implementation(libs.material)
     implementation(libs.constraint)
     implementation(libs.multidex)
+    implementation(libs.androidXLifecycleRuntimeKtx)
 
     androidTestImplementation(libs.junit)
-    androidTestImplementation(projects.kaspresso)
+
+    // kaspresso
+    if (hasProperty("kaspresso.snapshotVersion")) {
+        val kaspressoVersion = property("kaspresso.snapshotVersion")
+        testImplementation("com.kaspersky.android-components:kaspresso:$kaspressoVersion")
+        androidTestImplementation("com.kaspersky.android-components:kaspresso:$kaspressoVersion")
+    } else {
+        androidTestImplementation(projects.kaspresso)
+        testImplementation(projects.kaspresso)
+    }
+
     androidTestImplementation(libs.androidXTestRunner)
     androidTestImplementation(libs.androidXTestRules)
     androidTestImplementation(libs.androidXTestExtJunitKtx)
     androidTestImplementation(libs.androidXTestExtJunit)
 
     testImplementation(libs.junit)
-    testImplementation(projects.kaspresso)
     testImplementation(libs.androidXTestRunner)
     testImplementation(libs.androidXTestRules)
     testImplementation(libs.androidXTestExtJunitKtx)

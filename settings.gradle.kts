@@ -1,13 +1,18 @@
 rootProject.name = "kaspresso-framework"
 
-enableFeaturePreview("VERSION_CATALOGS")
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
+    val kasperskyRepoUrl: String? by settings
     repositories {
         gradlePluginPortal()
         google()
+        kasperskyRepoUrl?.let { maven { setUrl(it) } }
     }
+}
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
 }
 
 dependencyResolutionManagement {
@@ -17,18 +22,21 @@ dependencyResolutionManagement {
         mavenLocal()
         google()
         maven { url = uri("https://kotlin.bintray.com/kotlinx") }
+        maven { url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots") }
     }
 }
 
 includeBuild("build-logic")
 
 include(
-    ":adb-server:adbserver-command-types",
-    ":adb-server:adbserver-common",
-    ":adb-server:adbserver-connection",
+    ":adb-server:adb-server-command-types",
+    ":adb-server:adb-server-common",
+    ":adb-server:adb-server-connection",
     ":adb-server:adbserver-desktop",
-    ":adb-server:adbserver-desktop-device-connection",
-    ":adb-server:adbserver-device",
+    ":adb-server:adb-server-desktop-device-connection",
+    ":adb-server:adb-server-device",
+
+    ":page-object-code-gen",
 
     ":kaspresso",
     ":kautomator",
@@ -42,5 +50,5 @@ include(
     ":samples:kaspresso-allure-support-sample",
     ":samples:kaspresso-compose-support-sample",
 
-    ":tutorial"
+    ":tutorial",
 )

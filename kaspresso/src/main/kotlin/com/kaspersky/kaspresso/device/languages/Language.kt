@@ -1,5 +1,6 @@
 package com.kaspersky.kaspresso.device.languages
 
+import androidx.annotation.MainThread
 import java.util.Locale
 
 /**
@@ -10,10 +11,21 @@ interface Language {
     /**
      * Switches language only in the current Application (not in OS!).
      * Please, keep in mind the following fact:
-     *   If you have switched languages then you need to refresh current screen to get the screen with new language!
+     *   If you have switched languages then activity.recreate() invoked so you have to do it on MainThread only
      *   Also, don't forget to restore the previous language if you don't clean the state of the Application after each test.
      *
      * @throws Throwable if something went wrong
      */
+    @MainThread
     fun switchInApp(locale: Locale)
+
+    /**
+     * Changes locale for Android OS Settings.
+     * Under the hood grants CHANGE_CONFIGURATION permission
+     *     (without this permission, it's impossible to change system language)
+     *
+     * @throws Throwable if something went wrong
+     */
+    @MainThread
+    fun switchInSystem(locale: Locale)
 }

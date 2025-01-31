@@ -1,15 +1,16 @@
 plugins {
     id("convention.android-library")
     id("convention.publication-android-lib")
+    id("convention.third-party-report")
+    id("convention.legal-documents")
 }
 
-// TODO: move to publishing convention
 android {
-    libraryVariants.configureEach {
-        packageLibraryProvider.configure {
-            from("$rootDir/LICENSE.txt")
-            from("$rootDir/NOTICE.txt")
-        }
+    namespace = "com.kaspersky.kaspresso"
+
+    defaultConfig {
+        buildConfigField("String", "VISUAL_TEST_TYPE", System.getenv("VISUAL_TEST_TYPE")
+            ?: findProperty("kaspresso.visualTestType")?.toString() ?: "\"Record\"") // [Record, Compare]
     }
 }
 
@@ -20,6 +21,7 @@ publish {
 dependencies {
     api(projects.kautomator)
     api(libs.kakao)
+    api(libs.kakaoExtClicks)
     api(libs.bundles.espresso)
     api(libs.uiAutomator)
     api(libs.androidXCore)
@@ -27,8 +29,11 @@ dependencies {
 
     implementation(libs.kotlinStdlib)
     implementation(libs.gson)
-    implementation(projects.adbServer.adbserverDevice)
+    implementation(projects.adbServer.adbServerDevice)
+    implementation(libs.appcompat)
+    implementation(libs.material)
 
     testImplementation(libs.junit)
     testImplementation(libs.truth)
+    testImplementation(libs.mockk)
 }

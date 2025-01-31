@@ -5,10 +5,11 @@ import androidx.test.espresso.Espresso
 import androidx.test.espresso.FailureHandler
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.Configurator
-import io.github.kakaocup.kakao.Kakao
 import com.kaspersky.adbserver.common.log.logger.LogLevel
+import com.kaspersky.components.kautomator.KautomatorConfigurator
 import com.kaspersky.components.kautomator.intercept.interaction.UiDeviceInteraction
 import com.kaspersky.components.kautomator.intercept.interaction.UiObjectInteraction
+import com.kaspersky.kaspresso.BuildConfig
 import com.kaspersky.kaspresso.device.Device
 import com.kaspersky.kaspresso.device.accessibility.Accessibility
 import com.kaspersky.kaspresso.device.accessibility.AccessibilityImpl
@@ -50,6 +51,7 @@ import com.kaspersky.kaspresso.device.video.VideosImpl
 import com.kaspersky.kaspresso.device.video.recorder.VideoRecorderImpl
 import com.kaspersky.kaspresso.device.viewhierarchy.ViewHierarchyDumper
 import com.kaspersky.kaspresso.device.viewhierarchy.ViewHierarchyDumperImpl
+import com.kaspersky.kaspresso.docloc.SystemLanguage
 import com.kaspersky.kaspresso.failure.LoggingFailureHandler
 import com.kaspersky.kaspresso.files.dirs.DefaultDirsProvider
 import com.kaspersky.kaspresso.files.dirs.DirsProvider
@@ -63,9 +65,11 @@ import com.kaspersky.kaspresso.files.resources.impl.DefaultResourceFilesProvider
 import com.kaspersky.kaspresso.files.resources.impl.DefaultResourcesDirNameProvider
 import com.kaspersky.kaspresso.files.resources.impl.DefaultResourcesDirsProvider
 import com.kaspersky.kaspresso.files.resources.impl.DefaultResourcesRootDirsProvider
+import com.kaspersky.kaspresso.flakysafety.scalpel.external.ExternalFlakySafetyScalperNotifier
+import com.kaspersky.kaspresso.flakysafety.scalpel.external.ExternalFlakySafetyScalperNotifierImpl
 import com.kaspersky.kaspresso.idlewaiting.KautomatorWaitForIdleSettings
-import com.kaspersky.kaspresso.instrumental.InstrumentalDependencyProviderFactory
 import com.kaspersky.kaspresso.instrumental.InstrumentalDependencyProvider
+import com.kaspersky.kaspresso.instrumental.InstrumentalDependencyProviderFactory
 import com.kaspersky.kaspresso.interceptors.behavior.DataBehaviorInterceptor
 import com.kaspersky.kaspresso.interceptors.behavior.ViewBehaviorInterceptor
 import com.kaspersky.kaspresso.interceptors.behavior.WebBehaviorInterceptor
@@ -85,8 +89,8 @@ import com.kaspersky.kaspresso.interceptors.behaviorkautomator.impl.flakysafety.
 import com.kaspersky.kaspresso.interceptors.behaviorkautomator.impl.flakysafety.FlakySafeObjectBehaviorInterceptor
 import com.kaspersky.kaspresso.interceptors.behaviorkautomator.impl.systemsafety.SystemDialogSafetyDeviceBehaviorInterceptor
 import com.kaspersky.kaspresso.interceptors.behaviorkautomator.impl.systemsafety.SystemDialogSafetyObjectBehaviorInterceptor
-import com.kaspersky.kaspresso.interceptors.tolibrary.LibraryInterceptorsInjector.injectKaspressoInKakao
-import com.kaspersky.kaspresso.interceptors.tolibrary.LibraryInterceptorsInjector.injectKaspressoInKautomator
+import com.kaspersky.kaspresso.interceptors.tolibrary.KakaoLibraryInjector.injectKaspressoInKakao
+import com.kaspersky.kaspresso.interceptors.tolibrary.KakaoLibraryInjector.injectKaspressoInKautomator
 import com.kaspersky.kaspresso.interceptors.tolibrary.kautomator.KautomatorDeviceInterceptor
 import com.kaspersky.kaspresso.interceptors.tolibrary.kautomator.KautomatorObjectInterceptor
 import com.kaspersky.kaspresso.interceptors.watcher.kautomator.DeviceWatcherInterceptor
@@ -111,17 +115,29 @@ import com.kaspersky.kaspresso.interceptors.watcher.view.impl.logging.LoggingAto
 import com.kaspersky.kaspresso.interceptors.watcher.view.impl.logging.LoggingViewActionWatcherInterceptor
 import com.kaspersky.kaspresso.interceptors.watcher.view.impl.logging.LoggingViewAssertionWatcherInterceptor
 import com.kaspersky.kaspresso.interceptors.watcher.view.impl.logging.LoggingWebAssertionWatcherInterceptor
+import com.kaspersky.kaspresso.internal.runlisteners.artifactspull.ArtifactsPullRunListener
+import com.kaspersky.kaspresso.internal.visual.DefaultScreenshotsComparator
+import com.kaspersky.kaspresso.internal.visual.DefaultVisualTestWatcher
 import com.kaspersky.kaspresso.logger.UiTestLogger
 import com.kaspersky.kaspresso.logger.UiTestLoggerImpl
-import com.kaspersky.kaspresso.params.Params
-import com.kaspersky.kaspresso.params.FlakySafetyParams
-import com.kaspersky.kaspresso.params.ContinuouslyParams
+import com.kaspersky.kaspresso.params.ArtifactsPullParams
 import com.kaspersky.kaspresso.params.AutoScrollParams
+import com.kaspersky.kaspresso.params.ClickParams
+import com.kaspersky.kaspresso.params.ContinuouslyParams
 import com.kaspersky.kaspresso.params.ElementLoaderParams
-import com.kaspersky.kaspresso.params.StepParams
+import com.kaspersky.kaspresso.params.FlakySafetyParams
+import com.kaspersky.kaspresso.params.Params
 import com.kaspersky.kaspresso.params.ScreenshotParams
+import com.kaspersky.kaspresso.params.StepParams
+import com.kaspersky.kaspresso.params.SystemDialogsSafetyParams
 import com.kaspersky.kaspresso.params.VideoParams
+import com.kaspersky.kaspresso.runner.listener.addUniqueListener
 import com.kaspersky.kaspresso.testcases.core.testcontext.BaseTestContext
+import com.kaspersky.kaspresso.visual.ScreenshotsComparator
+import com.kaspersky.kaspresso.visual.VisualTestParams
+import com.kaspersky.kaspresso.visual.VisualTestType
+import com.kaspersky.kaspresso.visual.VisualTestWatcher
+import io.github.kakaocup.kakao.Kakao
 
 /**
  * The storage of all Kaspresso preferences and entities, such as [AdbServer], [Device] and different interceptors.
@@ -145,7 +161,10 @@ data class Kaspresso(
     internal val objectBehaviorInterceptors: List<ObjectBehaviorInterceptor>,
     internal val deviceBehaviorInterceptors: List<DeviceBehaviorInterceptor>,
     internal val stepWatcherInterceptors: List<StepWatcherInterceptor>,
-    internal val testRunWatcherInterceptors: List<TestRunWatcherInterceptor>
+    internal val testRunWatcherInterceptors: List<TestRunWatcherInterceptor>,
+    internal val resourceFilesProvider: ResourceFilesProvider,
+    internal val visualTestWatcher: VisualTestWatcher,
+    internal val externalFlakySafetyScalperNotifier: ExternalFlakySafetyScalperNotifier,
 ) {
 
     companion object {
@@ -419,6 +438,11 @@ data class Kaspresso(
         lateinit var exploit: Exploit
 
         /**
+         * Holds an implementation of [SystemLanguage] interface. If it was not specified, the default implementation is used.
+         */
+        lateinit var systemLanguage: SystemLanguage
+
+        /**
          * Holds an implementation of [Language] interface. If it was not specified, the default implementation is used.
          */
         lateinit var language: Language
@@ -433,6 +457,8 @@ data class Kaspresso(
          * If it was not specified, the default implementation is used.
          */
         lateinit var flakySafetyParams: FlakySafetyParams
+
+        lateinit var systemDialogsSafetyParams: SystemDialogsSafetyParams
 
         /**
          * Holds the [ContinuouslyParams] for [com.kaspersky.kaspresso.flakysafety.ContinuouslyProvider]'s usage.
@@ -470,6 +496,28 @@ data class Kaspresso(
          * If it was not specified, the default implementation is used.
          */
         lateinit var elementLoaderParams: ElementLoaderParams
+
+        /**
+         * Holds the [ClickParams].
+         * If it was not specified, the default implementation is used.
+         */
+        lateinit var clickParams: ClickParams
+
+        /**
+         * Holds the [ArtifactsPullParams].
+         * If it was not specified, the default implementation is used.
+         */
+        lateinit var artifactsPullParams: ArtifactsPullParams
+
+        /**
+         * Holds the [VisualTestParams].
+         * If it was not specified, the default implementation is used.
+         */
+        lateinit var visualTestParams: VisualTestParams
+
+        lateinit var screenshotsComparator: ScreenshotsComparator
+
+        lateinit var visualTestWatcher: VisualTestWatcher
 
         /**
          * Holds an implementation of [DirsProvider] interface. If it was not specified, the default implementation is used.
@@ -630,6 +678,13 @@ data class Kaspresso(
         lateinit var testRunWatcherInterceptors: MutableList<TestRunWatcherInterceptor>
 
         /**
+         * Holds a reference to the custom "external" flaky safety scalpers that are not set in the kaspresso by default
+         * @see com.kaspersky.kaspresso.flakysafety.scalpel.FlakySafeInterceptorScalpel
+         * @see com.kaspersky.kaspresso.flakysafety.scalpel.external.ExternalFlakySafetyScalper
+         */
+        lateinit var externalFlakySafetyScalperNotifier: ExternalFlakySafetyScalperNotifier
+
+        /**
          * Holds the implementation of the [androidx.test.espresso.FailureHandler] interface, that is called on every
          * failure.
          */
@@ -666,7 +721,7 @@ data class Kaspresso(
             if (!::libLogger.isInitialized) libLogger = UiTestLoggerImpl(DEFAULT_LIB_LOGGER_TAG)
             if (!::testLogger.isInitialized) testLogger = UiTestLoggerImpl(DEFAULT_TEST_LOGGER_TAG)
 
-            if (!::dirsProvider.isInitialized) dirsProvider = DefaultDirsProvider(instrumentation)
+            if (!::dirsProvider.isInitialized) dirsProvider = DefaultDirsProvider(instrumentalDependencyProviderFactory.getComponentProvider<Kaspresso>(instrumentation))
             if (!::resourcesRootDirsProvider.isInitialized) resourcesRootDirsProvider = DefaultResourcesRootDirsProvider()
             if (!::resourcesDirNameProvider.isInitialized) resourcesDirNameProvider = DefaultResourcesDirNameProvider()
             if (!::resourcesDirsProvider.isInitialized) {
@@ -713,7 +768,8 @@ data class Kaspresso(
             )
             if (!::hackPermissions.isInitialized) hackPermissions = HackPermissionsImpl(
                 libLogger,
-                instrumentalDependencyProviderFactory.getComponentProvider<HackPermissionsImpl>(instrumentation)
+                instrumentalDependencyProviderFactory.getComponentProvider<HackPermissionsImpl>(instrumentation),
+                adbServer
             )
             if (!::exploit.isInitialized) exploit = ExploitImpl(
                 libLogger,
@@ -721,16 +777,31 @@ data class Kaspresso(
                 instrumentalDependencyProviderFactory.getComponentProvider<ExploitImpl>(instrumentation),
                 adbServer
             )
-            if (!::language.isInitialized) language = LanguageImpl(libLogger, instrumentation.targetContext)
+
+            if (!::systemLanguage.isInitialized) systemLanguage = SystemLanguage(instrumentation.targetContext, testLogger, hackPermissions)
+            if (!::language.isInitialized) language = LanguageImpl(libLogger, instrumentation, systemLanguage)
+
             if (!::logcat.isInitialized) logcat = LogcatImpl(libLogger, adbServer)
 
             if (!::flakySafetyParams.isInitialized) flakySafetyParams = FlakySafetyParams.default()
+            if (!::systemDialogsSafetyParams.isInitialized) systemDialogsSafetyParams = SystemDialogsSafetyParams.default()
             if (!::continuouslyParams.isInitialized) continuouslyParams = ContinuouslyParams.default()
             if (!::autoScrollParams.isInitialized) autoScrollParams = AutoScrollParams.default()
             if (!::stepParams.isInitialized) stepParams = StepParams()
             if (!::screenshotParams.isInitialized) screenshotParams = ScreenshotParams()
             if (!::videoParams.isInitialized) videoParams = VideoParams()
             if (!::elementLoaderParams.isInitialized) elementLoaderParams = ElementLoaderParams()
+            if (!::clickParams.isInitialized) clickParams = ClickParams.default()
+            if (!::artifactsPullParams.isInitialized) artifactsPullParams = ArtifactsPullParams(enabled = false)
+            if (!::visualTestParams.isInitialized) visualTestParams = VisualTestParams(testType = VisualTestType.valueOf(BuildConfig.VISUAL_TEST_TYPE))
+            if (!::screenshotsComparator.isInitialized) screenshotsComparator = DefaultScreenshotsComparator(
+                visualTestParams,
+                testLogger,
+                resourcesRootDirsProvider,
+                resourcesDirsProvider,
+                resourceFileNamesProvider
+            )
+            if (!::visualTestWatcher.isInitialized) visualTestWatcher = DefaultVisualTestWatcher(visualTestParams, libLogger, dirsProvider, resourcesRootDirsProvider, files)
 
             if (!::screenshots.isInitialized) {
                 screenshots = ScreenshotsImpl(
@@ -742,7 +813,12 @@ data class Kaspresso(
                             instrumentalDependencyProviderFactory.getComponentProvider<ExternalScreenshotMaker>(instrumentation),
                             screenshotParams
                         )
-                    )
+                    ),
+                    visualTestParams = visualTestParams,
+                    screenshotsComparator = screenshotsComparator,
+                    dirsProvider = dirsProvider,
+                    resourceFileNamesProvider = resourceFileNamesProvider,
+                    resourcesDirsProvider = resourcesDirsProvider,
                 )
             }
 
@@ -753,7 +829,8 @@ data class Kaspresso(
                     videoRecorder = VideoRecorderImpl(
                         instrumentalDependencyProviderFactory.getComponentProvider<VideoRecorderImpl>(instrumentation),
                         libLogger,
-                        videoParams
+                        videoParams,
+                        instrumentation
                     )
                 )
             }
@@ -825,12 +902,13 @@ data class Kaspresso(
                     SystemDialogSafetyViewBehaviorInterceptor(
                         libLogger,
                         instrumentalDependencyProviderFactory.getInterceptorProvider<SystemDialogSafetyViewBehaviorInterceptor>(instrumentation),
-                        adbServer
+                        adbServer,
+                        systemDialogsSafetyParams
                     ),
                     FlakySafeViewBehaviorInterceptor(flakySafetyParams, libLogger)
                 ) else mutableListOf(
                     AutoScrollViewBehaviorInterceptor(autoScrollParams, libLogger),
-                    FlakySafeViewBehaviorInterceptor(flakySafetyParams, libLogger)
+                    FlakySafeViewBehaviorInterceptor(flakySafetyParams, libLogger),
                 )
 
             if (!::dataBehaviorInterceptors.isInitialized) dataBehaviorInterceptors =
@@ -838,7 +916,8 @@ data class Kaspresso(
                     SystemDialogSafetyDataBehaviorInterceptor(
                         libLogger,
                         instrumentalDependencyProviderFactory.getInterceptorProvider<SystemDialogSafetyViewBehaviorInterceptor>(instrumentation),
-                        adbServer
+                        adbServer,
+                        systemDialogsSafetyParams
                     ),
                     FlakySafeDataBehaviorInterceptor(flakySafetyParams, libLogger)
                 ) else mutableListOf(
@@ -852,7 +931,8 @@ data class Kaspresso(
                         SystemDialogSafetyWebBehaviorInterceptor(
                             libLogger,
                             instrumentalDependencyProviderFactory.getInterceptorProvider<SystemDialogSafetyViewBehaviorInterceptor>(instrumentation),
-                            adbServer
+                            adbServer,
+                            systemDialogsSafetyParams
                         ),
                         FlakySafeWebBehaviorInterceptor(flakySafetyParams, libLogger)
                     )
@@ -868,7 +948,8 @@ data class Kaspresso(
                 SystemDialogSafetyObjectBehaviorInterceptor(
                     libLogger,
                     instrumentalDependencyProviderFactory.getInterceptorProvider<SystemDialogSafetyViewBehaviorInterceptor>(instrumentation),
-                    adbServer
+                    adbServer,
+                    systemDialogsSafetyParams
                 ),
                 ElementLoaderObjectBehaviorInterceptor(libLogger, elementLoaderParams),
                 FlakySafeObjectBehaviorInterceptor(flakySafetyParams, libLogger)
@@ -878,7 +959,8 @@ data class Kaspresso(
                 SystemDialogSafetyDeviceBehaviorInterceptor(
                     libLogger,
                     instrumentalDependencyProviderFactory.getInterceptorProvider<SystemDialogSafetyViewBehaviorInterceptor>(instrumentation),
-                    adbServer
+                    adbServer,
+                    systemDialogsSafetyParams
                 ),
                 FlakySafeDeviceBehaviorInterceptor(flakySafetyParams, libLogger)
             )
@@ -891,6 +973,14 @@ data class Kaspresso(
                 TestRunLoggerWatcherInterceptor(libLogger),
                 defaultsTestRunWatcherInterceptor
             )
+
+            if (!::externalFlakySafetyScalperNotifier.isInitialized) externalFlakySafetyScalperNotifier = ExternalFlakySafetyScalperNotifierImpl()
+
+            if (artifactsPullParams.enabled) {
+                instrumentalDependencyProviderFactory.getComponentProvider<Kaspresso>(instrumentation).runNotifier.addUniqueListener {
+                    ArtifactsPullRunListener(params = artifactsPullParams, files = files, logger = libLogger)
+                }
+            }
         }
 
         /**
@@ -930,6 +1020,7 @@ data class Kaspresso(
                 ),
 
                 instrumentalDependencyProvider = instrumentalDependencyProviderFactory.getTestProvider(instrumentation),
+                resourceFilesProvider = resourceFilesProvider,
 
                 params = Params(
                     flakySafetyParams = flakySafetyParams,
@@ -939,6 +1030,9 @@ data class Kaspresso(
                     screenshotParams = screenshotParams,
                     videoParams = videoParams,
                     elementLoaderParams = elementLoaderParams,
+                    systemDialogsSafetyParams = systemDialogsSafetyParams,
+                    clickParams = clickParams,
+                    visualTestParams = visualTestParams,
                 ),
 
                 viewActionWatcherInterceptors = viewActionWatcherInterceptors,
@@ -957,28 +1051,15 @@ data class Kaspresso(
                 deviceBehaviorInterceptors = deviceBehaviorInterceptors,
 
                 stepWatcherInterceptors = stepWatcherInterceptors,
-                testRunWatcherInterceptors = testRunWatcherInterceptors
+                testRunWatcherInterceptors = testRunWatcherInterceptors,
+                externalFlakySafetyScalperNotifier = externalFlakySafetyScalperNotifier,
+                visualTestWatcher = visualTestWatcher,
             )
 
             configurator.waitForIdleTimeout = kautomatorWaitForIdleSettings.waitForIdleTimeout
             configurator.waitForSelectorTimeout = kautomatorWaitForIdleSettings.waitForSelectorTimeout
 
-            injectKaspressoInKakao(
-                kaspresso.viewBehaviorInterceptors,
-                kaspresso.dataBehaviorInterceptors,
-                kaspresso.webBehaviorInterceptors,
-                kaspresso.viewActionWatcherInterceptors,
-                kaspresso.viewAssertionWatcherInterceptors,
-                kaspresso.atomWatcherInterceptors,
-                kaspresso.webAssertionWatcherInterceptors
-            )
-
-            injectKaspressoInKautomator(
-                kaspresso.objectBehaviorInterceptors,
-                kaspresso.deviceBehaviorInterceptors,
-                kaspresso.objectWatcherInterceptors,
-                kaspresso.deviceWatcherInterceptors
-            )
+            kaspresso.injectInKakaoAndKautomator()
 
             failureHandler?.let { Espresso.setFailureHandler(it) }
 
@@ -986,5 +1067,28 @@ data class Kaspresso(
         }
     }
 
-    internal fun reset(): Unit = Kakao.reset()
+    internal fun injectInKakaoAndKautomator() {
+        injectKaspressoInKakao(
+            viewBehaviorInterceptors,
+            dataBehaviorInterceptors,
+            webBehaviorInterceptors,
+            viewActionWatcherInterceptors,
+            viewAssertionWatcherInterceptors,
+            atomWatcherInterceptors,
+            webAssertionWatcherInterceptors,
+            params.clickParams
+        )
+
+        injectKaspressoInKautomator(
+            objectBehaviorInterceptors,
+            deviceBehaviorInterceptors,
+            objectWatcherInterceptors,
+            deviceWatcherInterceptors
+        )
+    }
+
+    internal fun reset() {
+        Kakao.reset()
+        KautomatorConfigurator.reset()
+    }
 }

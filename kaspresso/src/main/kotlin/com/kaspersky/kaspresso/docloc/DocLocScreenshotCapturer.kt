@@ -1,6 +1,7 @@
 package com.kaspersky.kaspresso.docloc
 
 import com.kaspersky.kaspresso.device.screenshots.screenshotmaker.ScreenshotMaker
+import com.kaspersky.kaspresso.docloc.metadata.saver.MetadataSaver
 import com.kaspersky.kaspresso.files.resources.ResourceFilesProvider
 import com.kaspersky.kaspresso.internal.wait.wait
 import com.kaspersky.kaspresso.logger.UiTestLogger
@@ -28,6 +29,18 @@ internal class DocLocScreenshotCapturer(
         wait(timeoutMs = SCREENSHOT_CAPTURE_DELAY_MS, logger = logger) {
             val screenshotFile = resourceFilesProvider.provideScreenshotFile(screenshotName)
             screenshotMaker.takeScreenshot(screenshotFile)
+            metadataSaver.saveScreenshotMetadata(screenshotFile.parentFile, screenshotName)
+        }
+    }
+
+    /**
+     * Captures a screenshot and save it with metadata to [screenshotRootDir].
+     * @param screenshotName name of screenshot. Must match [a-zA-Z0-9_-]+
+     */
+    fun captureFullWindowScreenshot(screenshotName: String) {
+        wait(timeoutMs = SCREENSHOT_CAPTURE_DELAY_MS, logger = logger) {
+            val screenshotFile = resourceFilesProvider.provideScreenshotFile(screenshotName)
+            screenshotMaker.takeFullWindowScreenshot(screenshotFile)
             metadataSaver.saveScreenshotMetadata(screenshotFile.parentFile, screenshotName)
         }
     }

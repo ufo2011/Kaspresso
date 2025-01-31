@@ -34,18 +34,20 @@ class PermissionsImpl(
         Permissions.Button.ALLOW to getResIdWithPackageName("permission_allow_button"),
         Permissions.Button.ALLOW_ALWAYS to getResIdWithPackageName("permission_allow_always_button"),
         Permissions.Button.ALLOW_FOREGROUND to getResIdWithPackageName("permission_allow_foreground_only_button"),
+        Permissions.Button.ALLOW_ALL to getResIdWithPackageName("permission_allow_all_button"),
+        Permissions.Button.ALLOW_SELECTED to getResIdWithPackageName("permission_allow_selected_button"),
         Permissions.Button.DENY to getResIdWithPackageName("permission_deny_button")
     )
 
     /**
      * Waits for 1 sec, passes the permission-requesting permissions dialog and allows permissions.
      */
-    override fun allowViaDialog() {
+    override fun allowViaDialog(button: Permissions.Button) {
         wait(
             timeoutMs = DIALOG_TIMEOUT_MS,
             logger = logger
         ) {
-            handlePermissionRequest(Permissions.Button.ALLOW)
+            handlePermissionRequest(button)
         }
         logger.i("Allow permission via dialog")
     }
@@ -112,10 +114,11 @@ class PermissionsImpl(
      */
     private fun getPermissionDialogButtonAsUiObject(button: Permissions.Button): UiObject? {
         return try {
+            val buttonResId = buttonResNameMap[button] ?: return null
             val btnSelector = UiSelector()
                 .clickable(true)
                 .checkable(false)
-                .resourceId(buttonResNameMap[button])
+                .resourceId(buttonResId)
             uiDevice.findObject(btnSelector)
         } catch (e: UiObjectNotFoundException) {
             logger.e("There are no permissions dialog to interact with.")

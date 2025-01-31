@@ -66,7 +66,7 @@ class FailureLoggingProviderImpl(
                     error?.let { " because of ${error.javaClass.simpleName}" }
         )
 
-        error?.let { throw it.describedWith(viewMatcher) }
+        error?.let { throw describeError(it, viewMatcher) }
     }
 
     /**
@@ -76,18 +76,30 @@ class FailureLoggingProviderImpl(
      *
      * @return transformed [error].
      */
-    private fun Throwable.describedWith(viewMatcher: Matcher<View>?): Throwable {
-        return when (this) {
-            is PerformException -> {
+    private fun describeError(originalError: Throwable, viewMatcher: Matcher<View>?): Throwable {
+        return when {
+            originalError is PerformException -> {
                 PerformException.Builder()
-                    .from(this)
+                    .from(originalError)
                     .apply { viewMatcher?.let { withViewDescription(it.toString()) } }
                     .build()
+                    .apply { addSuppressed(originalError) }
             }
-            is AssertionError -> {
-                AssertionFailedError(message).initCause(this)
+            originalError is AssertionError -> {
+                AssertionFailedError(originalError.message)
+                    .initCause(originalError)
+                    .apply { addSuppressed(originalError) }
             }
-            else -> this
-        }.apply { stackTrace = Thread.currentThread().stackTrace }
+            isWebViewException(originalError) -> {
+                val message = StringBuilder("Failed to interact with web view! Usually it means that desired element is not found or JavaScript is disabled in web view")
+                viewMatcher?.let { message.append("\nView description: ${it.describe()}") }
+                RuntimeException(message.toString()).apply { addSuppressed(originalError) }
+            }
+            else -> originalError.apply { addSuppressed(RuntimeException()) }
+        }
+    }
+
+    private fun isWebViewException(throwable: Throwable): Boolean {
+        return throwable is RuntimeException && throwable.message?.contains("atom evaluation returned null", ignoreCase = true) ?: false
     }
 }

@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools"
-          package="com.kaspersky.kaspressample">
+          xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
@@ -36,6 +39,10 @@
         </activity>
 
         <activity
+            android:name=".autoscrollfallback.AutoscrollScrollViewWithPaddingActivity"
+            android:label="@string/simple_fragment_title"/>
+
+        <activity
             android:name=".simple.SimpleActivity"
             android:label="@string/simple_fragment_title"/>
 
@@ -57,12 +64,12 @@
             android:label="@string/main_screen_continuously_sample_button"/>
 
         <activity
-            android:name=".docloc.FragmentTestActivity"
-            android:theme="@style/Theme.AppCompat.NoActionBar"/>
-
-        <activity
             android:name=".device.DeviceSampleActivity"
             android:label="@string/device_sample_title"/>
+
+        <activity
+            android:name=".devicefull.DeviceFullWindowSampleActivity"
+            android:label="@string/device_full_title"/>
 
         <activity
             android:name=".upgrade.UpgradeTestActivity"
@@ -79,6 +86,18 @@
         <activity
             android:name=".sharedtest.SharedTestActivity"
             android:label="@string/main_screen_shared_test"/>
+
+        <activity android:name=".systemdialogs.SystemDialogsActivity"
+            android:label="@string/system_dialogs_sanity"/>
+
+        <activity
+            android:name=".systemlanguage.ChangeLocaleActivity"
+            android:label="@string/main_screen_change_language_mid_test_button"/>
+
+        <activity
+            android:name=".withtoolbar.WithToolbarActivity"
+            android:theme="@style/ToolbarTheme"
+            android:label="@string/main_screen_activity_with_toolbar_button"/>
 
         <service
             android:name=".device.DeviceSampleAccessibilityService"

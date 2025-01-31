@@ -2,8 +2,10 @@ import io.gitlab.arturbosch.detekt.Detekt
 
 plugins {
     base
+    id("convention.githooks")
     id("convention.dependency-updates")
-    id("io.gitlab.arturbosch.detekt") version "1.18.1"
+    id("io.gitlab.arturbosch.detekt") version "1.21.0"
+    id("convention.air")
 }
 
 buildscript {
@@ -31,7 +33,7 @@ val detektAll = tasks.register<Detekt>("detektAll") {
     exclude("**/resources/**")
     exclude("**/build/**")
     reports {
-        xml.enabled = false
-        html.enabled = false
+        xml.required.set(false)
+        html.required.set(false)
     }
 }

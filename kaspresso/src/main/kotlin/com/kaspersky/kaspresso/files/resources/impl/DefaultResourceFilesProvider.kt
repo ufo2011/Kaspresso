@@ -11,7 +11,7 @@ import java.io.File
 class DefaultResourceFilesProvider(
     private val resourcesRootDirsProvider: ResourcesRootDirsProvider,
     private val resourcesDirsProvider: ResourcesDirsProvider,
-    private val resourceFileNamesProvider: ResourceFileNamesProvider,
+    private val resourceFileNamesProvider: ResourceFileNamesProvider
 ) : ResourceFilesProvider {
 
     override fun provideLogcatFile(tag: String, subDir: String?): File {
@@ -41,10 +41,10 @@ class DefaultResourceFilesProvider(
             tag,
             FileExtension.MP4.toString()
         )
-        return resourcesDirsProvider.provide(
-            resourcesRootDirsProvider.videoRootDir,
-            subDir
-        ).resolve(resFileName).createFileIfNeeded()
+
+        return resourcesDirsProvider.provide(resourcesRootDirsProvider.videoRootDir, subDir)
+            .resolve(resFileName)
+            .createFileIfNeeded()
     }
 
     override fun provideViewHierarchyFile(tag: String, subDir: String?): File {

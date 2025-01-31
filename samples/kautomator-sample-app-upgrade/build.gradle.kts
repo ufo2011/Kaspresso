@@ -3,6 +3,7 @@ plugins {
 }
 
 android {
+    namespace = "com.kaspersky.kaspresso.upgradesample"
     defaultConfig {
         applicationId = "com.kaspersky.kaspresso.sample_upgrade_tests"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -11,6 +12,7 @@ android {
 
 dependencies {
     implementation(libs.appcompat)
+    implementation(libs.material)
     implementation(libs.multidex)
 
     androidTestImplementation(projects.kaspresso)

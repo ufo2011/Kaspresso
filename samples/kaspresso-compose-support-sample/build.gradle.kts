@@ -3,6 +3,7 @@ plugins {
 }
 
 android {
+    namespace = "com.kaspersky.kaspresso.composesupport.sample"
     defaultConfig {
         minSdk = 21
 
@@ -16,7 +17,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.compose.get()
+        kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
     }
 
     sourceSets {
@@ -52,14 +53,24 @@ dependencies {
     implementation(libs.lifecycleViewModelComposeKtx)
     implementation(libs.composeRuntimeLiveData)
 
-    androidTestImplementation(projects.kaspresso)
-    androidTestImplementation(projects.composeSupport)
+    // kaspresso
+    if (hasProperty("kaspresso.snapshotVersion")) {
+        val kaspressoVersion = property("kaspresso.snapshotVersion")
+        testImplementation("com.kaspersky.android-components:kaspresso:$kaspressoVersion")
+        testImplementation("com.kaspersky.android-components:kaspresso-compose-support:$kaspressoVersion")
+        androidTestImplementation("com.kaspersky.android-components:kaspresso:$kaspressoVersion")
+        androidTestImplementation("com.kaspersky.android-components:kaspresso-compose-support:$kaspressoVersion")
+    } else {
+        testImplementation(projects.kaspresso)
+        testImplementation(projects.composeSupport)
+        androidTestImplementation(projects.kaspresso)
+        androidTestImplementation(projects.composeSupport)
+    }
+
     androidTestImplementation(libs.androidXTestRunner)
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.composeUiTestJunit)
 
-    testImplementation(projects.kaspresso)
-    testImplementation(projects.composeSupport)
     testImplementation(libs.androidXTestRunner)
     testImplementation(libs.junit)
     testImplementation(libs.composeUiTestJunit)

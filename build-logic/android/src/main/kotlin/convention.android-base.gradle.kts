@@ -3,8 +3,7 @@ import com.android.build.gradle.BaseExtension
 @Suppress("MagicNumber")
 configure<BaseExtension> {
 
-    buildToolsVersion("30.0.3")
-    compileSdkVersion(31)
+    compileSdkVersion(34)
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -12,14 +11,14 @@ configure<BaseExtension> {
     }
 
     defaultConfig {
-        minSdk = 18
+        minSdk = 21
         targetSdk = 30
     }
 
     packagingOptions {
-        merges.apply {
-            add("META-INF/LGPL2.1")
-            add("META-INF/AL2.0")
+        resources {
+            merges.add("META-INF/LGPL2.1")
+            merges.add("META-INF/AL2.0")
         }
     }
 
@@ -33,5 +32,6 @@ configure<BaseExtension> {
         resValues = false
         shaders = false
         viewBinding = false
+        buildConfig = true
     }
 }

@@ -1,0 +1,53 @@
+name: Publication to MavenCentral
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseType:
+        description: 'Release type'
+        required: true
+        type: choice
+        options:
+          - SonatypeReleases
+          - SonatypeSnapshots
+      version:
+        description: 'Version (for example 1.4.2-SNAPSHOT)'
+        required: true
+        type: string
+
+jobs:
+  publication:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v1
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 17
+      - name: Tests
+        run: make unit_tests
+      - name: Assemble build
+        run: make compile_all
+      - name: Publish
+        env:
+          OSSRH_USER: ${{ secrets.ossrh_user }}
+          OSSRH_PASSWORD: ${{ secrets.ossrh_password }}
+          PGP_KEYID: ${{ secrets.pgp_keyid }}
+          PGP_KEY: ${{ secrets.pgp_key }}
+          PGP_PASSWORD: ${{ secrets.pgp_password }}
+        run: >
+          ./gradlew publishAllPublicationsTo${{ inputs.releaseType }}Repository
+          -Pkaspresso.version=${{ inputs.version }}
+          -Pkaspresso.ossrh.user=${OSSRH_USER}
+          -Pkaspresso.ossrh.password=${OSSRH_PASSWORD}
+          -Pkaspresso.pgp.keyid=${PGP_KEYID}
+          -Pkaspresso.pgp.key=${PGP_KEY}
+          -Pkaspresso.pgp.password=${PGP_PASSWORD}
+          --no-parallel

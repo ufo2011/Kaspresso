@@ -3,12 +3,12 @@ package com.kaspersky.kaspressample.device_tests
 import android.Manifest
 import android.provider.CallLog
 import android.provider.Telephony
-import androidx.test.rule.ActivityTestRule
+import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.rule.GrantPermissionRule
-import io.github.kakaocup.kakao.screen.Screen
 import com.kaspersky.kaspressample.device.DeviceSampleActivity
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.kaspersky.kaspresso.testcases.core.testcontext.BaseTestContext
+import io.github.kakaocup.kakao.screen.Screen
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Rule
@@ -19,7 +19,7 @@ class DevicePhoneSampleTest : TestCase() {
     companion object {
         private const val PHONE_NUMBER = "+79111111111"
         private const val SMS_MESSAGE_TEXT = "Kaspresso"
-        private const val CONTENT_UPDATE_DELAY = 1_500L
+        private const val CONTENT_UPDATE_DELAY = 5_000L
         private const val CALL_DURATION = 2_000L
     }
 
@@ -32,7 +32,7 @@ class DevicePhoneSampleTest : TestCase() {
     )
 
     @get:Rule
-    val activityTestRule = ActivityTestRule(DeviceSampleActivity::class.java, false, true)
+    val activityRule = activityScenarioRule<DeviceSampleActivity>()
 
     @Test
     fun phoneSampleTest() {
